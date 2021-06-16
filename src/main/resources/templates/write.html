@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>작성 페이지</title>
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/bootstrap-4.4.1/dist/css/bootstrap.css" rel="stylesheet">
+  <link href="/css/list.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center activity">
+        <div><span class="activity-done">Write</span></div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <form>
+    <div class="form-group">
+      <label for="Title">Title</label>
+      <input type="text" class="form-control" id="Title" placeholder="Title">
+    </div>
+    <div class="form-group">
+      <label for="Color">Color</label>
+      <select multiple class="form-control" id="Color">
+        <option>Gray</option>
+        <option>Red</option>
+        <option>Blue</option>
+        <option>Green</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="Desc">Description</label>
+      <textarea class="form-control" id="Desc" rows="3"></textarea>
+    </div>
+  </form>
+  <button type="button" id="submit" class="btn btn-primary mb-2">Write</button>
+  <button type="button" id="list" class="btn btn-warning mb-2">Back</button>
+</div>
+<script>
+  const write_button = document.getElementById("submit");
+  write_button.addEventListener("click", () => {
+    // 데이터 json으로 가공해서 보내기
+    let form_date = {
+      title: document.getElementById("Title").value,
+      color: document.getElementById("Color").value,
+      desc: document.getElementById("Desc").value
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/write_submit", true);
+    // GET은 주소 뒤에 POST는 헤더를 통해서 보내네
+    xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8');
+    xhr.send(JSON.stringify(form_date));
+    console.log(JSON.stringify(form_date));
+    xhr.onload = () => {
+      if(xhr.status == 200){
+        if(xhr.response == "success") {
+          alert("success");
+          location.replace("/list");
+        }else{
+          alert("failed!");
+        }
+      }else{
+        alert("failed!");
+      }
+    }
+  });
+
+  const list_button = document.getElementById("list");
+  list_button.addEventListener("click", () => {
+    location.replace("/list");
+  });
+
+</script>
+</body>
+</html>
