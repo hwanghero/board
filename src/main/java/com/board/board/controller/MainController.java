@@ -69,9 +69,12 @@ public class MainController {
     }
 
     @RequestMapping("/modify/{Idx}")
-    public String modify(@PathVariable int Idx, Model model) {
-        System.out.println("Idx Check: "+ Idx);
+    public String modify(@PathVariable Integer Idx, Model model) {
+        if(Idx == null) return "redirect:/list";
+
         board getBoard = boardService.board_one(Idx);
+        if(getBoard == null) return "redirect:/list";
+
         model.addAttribute("getBoard", getBoard);
         return "modify";
     }
