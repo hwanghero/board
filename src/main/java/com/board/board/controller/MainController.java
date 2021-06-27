@@ -2,9 +2,10 @@ package com.board.board.controller;
 
 import com.board.board.mysql.board.BoardService;
 import com.board.board.mysql.board.board;
+import com.board.board.mysql.sys_admin.sysAdminService;
+import com.board.board.mysql.sys_admin.sysadmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -13,8 +14,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -22,6 +23,8 @@ public class MainController {
 
     @Autowired
     private BoardService boardService;
+    @Autowired
+    private sysAdminService sysAdminService;
 
     @RequestMapping("/")
     public String main(Model model, @PageableDefault(size=10, sort="regtime",direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request) {
@@ -31,12 +34,47 @@ public class MainController {
     }
 
     @RequestMapping("/login")
-    public String login() {
+    public String login(HttpServletRequest request) {
         return "login";
+    }
+
+    @RequestMapping("/logout")
+    public String logout(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        session.removeAttribute("admin");
+        return "redirect:/login";
+    }
+
+    public boolean AdminCheck(HttpServletRequest request){
+        HttpSession session = request.getSession();
+        String getAdmin = (String) session.getAttribute("admin");
+        if(getAdmin != null && getAdmin.equals("true")){
+            return true;
+        }
+        return false;
+    }
+
+    @RequestMapping(value="/login_submit", method=RequestMethod.POST, consumes="application/json")
+    @ResponseBody
+    public String login_submit(@RequestBody Map<String, Object> json, HttpServletRequest request){
+        // 여기서 로그인 체크
+        HttpSession session = request.getSession();
+
+        sysadmin SysAdmin = sysAdminService.sysAdminLogin(json.get("id").toString(), json.get("pw").toString());
+        System.out.println(SysAdmin);
+
+        if(SysAdmin != null){
+            session.setAttribute("admin", "true");
+            return "success";
+        }else{
+            return "failed";
+        }
     }
 
     @RequestMapping("/list")
     public String list(Model model, @PageableDefault(size=10, sort="regtime",direction = Sort.Direction.DESC) Pageable pageable, HttpServletRequest request) {
+        System.out.println(AdminCheck(request));
+        if(!AdminCheck(request))  return "redirect:/login";
         String searchTitle = request.getParameter("searchTitle")==null ? "" : request.getParameter("searchTitle");
 
         Page<board> boardList = boardService.board_list(searchTitle, pageable);
@@ -53,7 +91,8 @@ public class MainController {
     }
 
     @RequestMapping("/write")
-    public String write() {
+    public String write(HttpServletRequest request) {
+        if(!AdminCheck(request))  return "redirect:/login";
         return "write";
     }
 
@@ -69,9 +108,8 @@ public class MainController {
     }
 
     @RequestMapping("/modify/{Idx}")
-    public String modify(@PathVariable Integer Idx, Model model) {
-        if(Idx == null) return "redirect:/list";
-
+    public String modify(@PathVariable int Idx, Model model, HttpServletRequest request) {
+        if(!AdminCheck(request))  return "redirect:/login";
         board getBoard = boardService.board_one(Idx);
         if(getBoard == null) return "redirect:/list";
 

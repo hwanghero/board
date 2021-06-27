@@ -11,7 +11,7 @@ import javax.persistence.Id;
 @NoArgsConstructor
 @Entity
 @Builder
-public class sys_admin {
+public class sysadmin {
     @Id
     private String id;
     private String pw;
